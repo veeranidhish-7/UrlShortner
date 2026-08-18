@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener & Analytics Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>URL Shortener</h1>
+            <p>Fast, reliable, and trackable links.</p>
+        </header>
+
+        <section class="card create-card">
+            <h2>Create Short Link</h2>
+            <form id="shorten-form">
+                <input type="url" id="original-url" placeholder="https://example.com/very/long/url" required>
+                <button type="submit">Shorten URL</button>
+            </form>
+            <div id="result-container" class="hidden">
+                <p>Your short link:</p>
+                <div class="result-box">
+                    <a id="short-url" href="#" target="_blank"></a>
+                    <button id="copy-btn" title="Copy to clipboard">Copy</button>
+                </div>
+            </div>
+            <div id="error-message" class="hidden error"></div>
+        </section>
+
+        <section class="card dashboard-card">
+            <h2>Analytics Dashboard</h2>
+            <p class="subtitle">Enter a short code to view telemetry data.</p>
+            <form id="stats-form">
+                <input type="text" id="short-code-input" placeholder="e.g. 7aZ3q" required>
+                <button type="submit">View Stats</button>
+            </form>
+            <div id="stats-error" class="hidden error"></div>
+
+            <div id="stats-container" class="hidden">
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h3>Total Clicks</h3>
+                        <p id="total-clicks" class="big-number">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Last Clicked</h3>
+                        <p id="last-clicked">-</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="clicksChart"></canvas>
+                </div>
+
+                <h3>Recent Visits</h3>
+                <div class="table-container">
+                    <table id="visits-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Browser / OS</th>
+                                <th>Referrer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

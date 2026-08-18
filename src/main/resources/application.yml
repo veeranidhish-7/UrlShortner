@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: urlshortener
+  datasource:
+    url: jdbc:postgresql://localhost:5432/urlshortener
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+        thread-name-prefix: async-task-
+
+server:
+  port: 8080
