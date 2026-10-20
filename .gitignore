@@ -32,3 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 SPEC.md
+
+### Documentation ###
+docs/
+
+### OS & Logs ###
+.DS_Store
+*.log

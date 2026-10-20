@@ -8,8 +8,10 @@ import com.portfolio.urlshortener.exception.UrlNotFoundException;
 import com.portfolio.urlshortener.repository.AnalyticsRepository;
 import com.portfolio.urlshortener.repository.UrlRepository;
 import com.portfolio.urlshortener.service.UrlService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,11 +31,35 @@ public class UrlController {
     private final UrlRepository urlRepository;
     private final AnalyticsRepository analyticsRepository;
 
+    @Value("${app.base-url:}")
+    private String configuredBaseUrl;
+
     @PostMapping
-    public ResponseEntity<?> createShortUrl(@Valid @RequestBody UrlRequestDto requestDto) {
+    public ResponseEntity<?> createShortUrl(@Valid @RequestBody UrlRequestDto requestDto, HttpServletRequest request) {
         String shortCode = urlService.shortenUrl(requestDto.getOriginalUrl());
+        String baseUrl = resolveBaseUrl(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("shortCode", shortCode, "shortUrl", "http://localhost:8080/" + shortCode));
+                .body(Map.of("shortCode", shortCode, "shortUrl", baseUrl + "/" + shortCode));
+    }
+
+    private String resolveBaseUrl(HttpServletRequest request) {
+        if (configuredBaseUrl != null && !configuredBaseUrl.isBlank()) {
+            return configuredBaseUrl.replaceAll("/+$", "");
+        }
+        String proto = request.getHeader("X-Forwarded-Proto");
+        if (proto == null || proto.isBlank()) {
+            proto = request.getScheme();
+        }
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host == null || host.isBlank()) {
+            host = request.getHeader("Host");
+        }
+        if (host == null || host.isBlank()) {
+            int port = request.getServerPort();
+            boolean isStandardPort = (port == 80 && "http".equalsIgnoreCase(proto)) || (port == 443 && "https".equalsIgnoreCase(proto));
+            host = request.getServerName() + (isStandardPort ? "" : ":" + port);
+        }
+        return proto + "://" + host;
     }
 
     @GetMapping("/{shortCode}/stats")
