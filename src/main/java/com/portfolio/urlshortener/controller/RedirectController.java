@@ -22,7 +22,7 @@ public class RedirectController {
     private final UrlRepository urlRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @GetMapping("/{shortCode:[a-zA-Z0-9]+}")
+    @GetMapping("/{shortCode:[a-zA-Z0-9_-]+}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode, HttpServletRequest request) {
         // Resolve URL (hits Redis cache first, then DB)
         String originalUrl = urlService.getOriginalUrl(shortCode);

@@ -61,9 +61,10 @@ async function loadAdminDashboard(adminKey) {
         // Render URL list
         renderAdminUrlsTable();
 
-        // Reveal Admin UI
+        // Reveal Admin UI & Custom Alias Input
         adminSection.classList.remove('hidden');
         adminBar.classList.remove('hidden');
+        document.getElementById('admin-alias-container')?.classList.remove('hidden');
     } catch (err) {
         errorEl.textContent = err.message;
         errorEl.classList.remove('hidden');
@@ -190,6 +191,14 @@ document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
     localStorage.removeItem('admin_key');
     document.getElementById('admin-section').classList.add('hidden');
     document.getElementById('admin-status-bar').classList.add('hidden');
+    const aliasContainer = document.getElementById('admin-alias-container');
+    if (aliasContainer) {
+        aliasContainer.classList.add('hidden');
+    }
+    const aliasInput = document.getElementById('custom-alias');
+    if (aliasInput) {
+        aliasInput.value = '';
+    }
 });
 
 document.getElementById('admin-search-input')?.addEventListener('input', renderAdminUrlsTable);
@@ -199,6 +208,7 @@ document.getElementById('admin-status-filter')?.addEventListener('change', rende
 document.getElementById('shorten-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const originalUrl = document.getElementById('original-url').value;
+    const customAlias = document.getElementById('custom-alias')?.value.trim() || null;
     const errorEl = document.getElementById('error-message');
     const resultContainer = document.getElementById('result-container');
     const shortUrlEl = document.getElementById('short-url');
@@ -207,24 +217,40 @@ document.getElementById('shorten-form').addEventListener('submit', async (e) => 
     resultContainer.classList.add('hidden');
 
     try {
+        const adminKey = localStorage.getItem('admin_key');
+        const headers = { 'Content-Type': 'application/json' };
+        if (adminKey) {
+            headers['X-Admin-Key'] = adminKey;
+        }
+
+        const payload = { originalUrl };
+        if (customAlias) {
+            payload.customAlias = customAlias;
+        }
+
         const response = await fetch(API_BASE, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ originalUrl })
+            headers: headers,
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.originalUrl || data.error || 'Failed to shorten URL');
+            throw new Error(data.error || data.customAlias || data.originalUrl || 'Failed to shorten URL');
         }
 
         shortUrlEl.href = data.shortUrl;
         shortUrlEl.textContent = data.shortUrl;
         resultContainer.classList.remove('hidden');
 
+        // Clear custom alias input
+        const aliasInput = document.getElementById('custom-alias');
+        if (aliasInput) {
+            aliasInput.value = '';
+        }
+
         // If admin is logged in, refresh table to show new link
-        const adminKey = localStorage.getItem('admin_key');
         if (adminKey) {
             loadAdminDashboard(adminKey);
         }

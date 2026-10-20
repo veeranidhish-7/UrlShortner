@@ -34,9 +34,37 @@ public class UrlController {
     @Value("${app.base-url:}")
     private String configuredBaseUrl;
 
+    private static final java.util.Set<String> RESERVED_KEYWORDS = java.util.Set.of(
+            "api", "admin", "login", "register", "stats", "index.html", "style.css", "app.js", "favicon.ico", "error"
+    );
+
     @PostMapping
-    public ResponseEntity<?> createShortUrl(@Valid @RequestBody UrlRequestDto requestDto, HttpServletRequest request) {
-        String shortCode = urlService.shortenUrl(requestDto.getOriginalUrl());
+    public ResponseEntity<?> createShortUrl(
+            @Valid @RequestBody UrlRequestDto requestDto,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
+            HttpServletRequest request
+    ) {
+        String customAlias = requestDto.getCustomAlias();
+        if (customAlias != null && !customAlias.isBlank()) {
+            customAlias = customAlias.trim();
+            // 1. Verify admin privilege
+            if (adminKey == null || !adminKey.trim().equals(configuredAdminKey.trim())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Only Admin has the privilege to create custom short codes!"));
+            }
+            // 2. Check reserved keywords
+            if (RESERVED_KEYWORDS.contains(customAlias.toLowerCase())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "The alias '" + customAlias + "' is a reserved keyword"));
+            }
+            // 3. Check for existing alias
+            if (urlRepository.findByShortCode(customAlias).isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("error", "Custom alias '" + customAlias + "' is already in use!"));
+            }
+        }
+
+        String shortCode = urlService.shortenUrl(requestDto.getOriginalUrl(), customAlias);
         String baseUrl = resolveBaseUrl(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("shortCode", shortCode, "shortUrl", baseUrl + "/" + shortCode));

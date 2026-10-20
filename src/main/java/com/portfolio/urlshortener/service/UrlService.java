@@ -26,6 +26,23 @@ public class UrlService {
 
     @Transactional
     public String shortenUrl(String originalUrl) {
+        return shortenUrl(originalUrl, null);
+    }
+
+    @Transactional
+    public String shortenUrl(String originalUrl, String customAlias) {
+        if (customAlias != null && !customAlias.isBlank()) {
+            String trimmedAlias = customAlias.trim();
+            if (urlRepository.findByShortCode(trimmedAlias).isPresent()) {
+                throw new IllegalArgumentException("Short code '" + trimmedAlias + "' is already taken");
+            }
+            UrlEntity urlEntity = new UrlEntity();
+            urlEntity.setOriginalUrl(originalUrl);
+            urlEntity.setShortCode(trimmedAlias);
+            urlRepository.save(urlEntity);
+            return trimmedAlias;
+        }
+
         UrlEntity urlEntity = new UrlEntity();
         urlEntity.setOriginalUrl(originalUrl);
         // Save first to get the generated sequence ID

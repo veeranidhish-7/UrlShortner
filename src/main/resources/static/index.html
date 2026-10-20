@@ -86,9 +86,15 @@
         <!-- Public Shorten URL Card -->
         <section class="card create-card">
             <h2>Create Short Link</h2>
-            <form id="shorten-form">
-                <input type="url" id="original-url" placeholder="https://example.com/very/long/url" required>
-                <button type="submit">Shorten URL</button>
+            <form id="shorten-form" class="shorten-form-layout">
+                <div class="inputs-stack">
+                    <input type="url" id="original-url" placeholder="https://example.com/very/long/url" required>
+                    <div id="admin-alias-container" class="admin-alias-wrapper hidden">
+                        <span class="alias-tag">👑 Custom Alias</span>
+                        <input type="text" id="custom-alias" placeholder="e.g. resume or portfolio (letters, numbers, -, _)">
+                    </div>
+                </div>
+                <button type="submit" id="shorten-btn">Shorten URL</button>
             </form>
             <div id="result-container" class="hidden">
                 <p>Your short link:</p>
