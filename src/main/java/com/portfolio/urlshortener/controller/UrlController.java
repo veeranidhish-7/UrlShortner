@@ -94,8 +94,18 @@ public class UrlController {
         return ResponseEntity.ok(response);
     }
 
+    @Value("${app.admin-key:adminNidhish}")
+    private String configuredAdminKey;
+
     @DeleteMapping("/{shortCode}")
-    public ResponseEntity<Void> deleteUrl(@PathVariable String shortCode) {
+    public ResponseEntity<?> deleteUrl(
+            @PathVariable String shortCode,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey
+    ) {
+        if (adminKey == null || !adminKey.trim().equals(configuredAdminKey.trim())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized: Admin privileges required to delete links"));
+        }
         urlService.deleteUrl(shortCode);
         return ResponseEntity.noContent().build();
     }

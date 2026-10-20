@@ -3,18 +3,21 @@ package com.portfolio.urlshortener.service;
 import com.portfolio.urlshortener.entity.UrlEntity;
 import com.portfolio.urlshortener.exception.UrlNotFoundException;
 import com.portfolio.urlshortener.repository.UrlRepository;
+import com.portfolio.urlshortener.repository.AnalyticsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UrlService {
 
     private final UrlRepository urlRepository;
+    private final AnalyticsRepository analyticsRepository;
     private final Base62Service base62Service;
     private final StringRedisTemplate redisTemplate;
 
@@ -67,6 +70,25 @@ public class UrlService {
         urlRepository.save(urlEntity);
         
         // Invalidate cache
+        redisTemplate.delete(REDIS_PREFIX + shortCode);
+    }
+
+    public List<UrlEntity> getAllUrls() {
+        return urlRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Transactional
+    public void purgeUrl(String shortCode) {
+        UrlEntity urlEntity = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException("Short URL not found"));
+
+        // 1. Delete associated analytics records
+        analyticsRepository.deleteByUrlId(urlEntity.getId());
+
+        // 2. Delete URL entity from database
+        urlRepository.delete(urlEntity);
+
+        // 3. Invalidate Redis cache
         redisTemplate.delete(REDIS_PREFIX + shortCode);
     }
 }

@@ -3,19 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Shortener & Analytics Dashboard</title>
+    <title>URL Shortener & Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
+        <!-- Top Nav / Admin Status Bar -->
+        <div id="admin-status-bar" class="admin-bar hidden">
+            <div class="admin-badge">
+                <span class="status-dot"></span>
+                <span>Admin Mode Active</span>
+            </div>
+            <button id="admin-logout-btn" class="btn-subtle" title="Log out from Admin Mode">Exit Admin</button>
+        </div>
+
         <header>
             <h1>URL Shortener</h1>
             <p>Fast, reliable, and trackable links.</p>
         </header>
 
+        <!-- Admin Dashboard Section (Visible only when logged in via ?admin=...) -->
+        <section id="admin-section" class="card admin-card hidden">
+            <div class="card-header-flex">
+                <div>
+                    <h2>👑 Admin Link Management</h2>
+                    <p class="subtitle">Live database overview of all links created by guests and users.</p>
+                </div>
+                <button id="admin-refresh-btn" class="btn-secondary" title="Refresh URL list">🔄 Refresh</button>
+            </div>
+
+            <!-- KPI Summary Cards -->
+            <div class="admin-stats-grid">
+                <div class="stat-box">
+                    <h3>Total URLs</h3>
+                    <p id="admin-total-urls" class="big-number">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Total Clicks</h3>
+                    <p id="admin-total-clicks" class="big-number accent-cyan">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Active Links</h3>
+                    <p id="admin-active-urls" class="big-number accent-green">0</p>
+                </div>
+            </div>
+
+            <!-- Filter & Search Controls -->
+            <div class="table-controls">
+                <input type="text" id="admin-search-input" placeholder="🔍 Search by shortcode or original URL...">
+                <select id="admin-status-filter" class="filter-select">
+                    <option value="all">All Links</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+
+            <div id="admin-error" class="hidden error"></div>
+
+            <!-- Links Data Table -->
+            <div class="table-container">
+                <table id="admin-urls-table">
+                    <thead>
+                        <tr>
+                            <th>Short Link</th>
+                            <th>Original Destination</th>
+                            <th>Clicks</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-urls-tbody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading links...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Public Shorten URL Card -->
         <section class="card create-card">
             <h2>Create Short Link</h2>
             <form id="shorten-form">
@@ -32,6 +100,7 @@
             <div id="error-message" class="hidden error"></div>
         </section>
 
+        <!-- Analytics Dashboard Card -->
         <section class="card dashboard-card">
             <h2>Analytics Dashboard</h2>
             <p class="subtitle">Enter a short code to view telemetry data.</p>

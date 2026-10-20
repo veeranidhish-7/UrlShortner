@@ -28,6 +28,7 @@ spring:
 
 app:
   base-url: ${APP_BASE_URL:}
+  admin-key: ${ADMIN_KEY:adminNidhish}
 
 server:
   port: ${PORT:8080}
